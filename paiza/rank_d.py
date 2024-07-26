@@ -7,7 +7,8 @@ def email_address():
 
 
 def addition():
-    print(sum(int(x) for x in input().split()))
+    print(sum(map(int, input().split())))
+    # print(sum(int(x) for x in input().split()))
 
 
 def min_num():
