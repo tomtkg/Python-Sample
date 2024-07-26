@@ -1,5 +1,6 @@
 import io
 
+
 def check(monkeypatch, func: None, input: str, output: str):
     stdin = io.StringIO(input)
     stdout = io.StringIO()

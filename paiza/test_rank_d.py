@@ -1,4 +1,4 @@
-from rank_d import *
+from rank_d import square, email_address, addition, min_num, diff_str
 from utils import check
 
 
