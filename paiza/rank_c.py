@@ -16,7 +16,7 @@ def fizz_buzz():
 def mikan():
     N, M = map(int, input().split())
     for _ in range(M):
-        print(max(N, round(int(input()) / N) * N))
+        print(max(N, (int(input()) + N // 2) // N * N))
 
 
 def umpire():
