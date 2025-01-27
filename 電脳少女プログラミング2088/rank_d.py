@@ -7,4 +7,4 @@ def casino():
 
 
 def slums():
-    print(int(int(input()) / 2 + 100))
+    print(int(input()) // 2 + 100)
