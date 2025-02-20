@@ -65,15 +65,6 @@ class Action:
             return f"{self.type} {self.pos[0]} {self.pos[1]}"
 
 
-class Result:
-    def __init__(self, actions: list[Action], score: int):
-        self.actions = actions
-        self.score = score
-
-    def __str__(self):
-        return "\n".join(map(str, self.actions))
-
-
 class Field:
     def __init__(self, N: int):
         self.N = N
@@ -159,7 +150,7 @@ class Solver:
     def build_nothing(self) -> None:
         self.actions.append(Action(DO_NOTHING, (0, 0)))
 
-    def solve(self) -> Result:
+    def solve(self) -> None:
         # 接続する人を見つける
         rail_count = (self.K - COST_STATION * 2) // COST_RAIL
         person_idx = 0
@@ -207,8 +198,6 @@ class Solver:
             self.build_nothing()
             self.money += income
 
-        return Result(self.actions, self.money)
-
 
 def main():
     N, M, K, T = map(int, input().split())
@@ -220,9 +209,10 @@ def main():
         workplace.append((r1, c1))
 
     solver = Solver(N, M, K, T, home, workplace)
-    result = solver.solve()
-    print(result)
-    print(f"score={result.score}", file=sys.stderr)
+    solver.solve()
+    
+    print("\n".join(map(str, solver.actions)))
+    print(f"score={solver.money}", file=sys.stderr)
 
 
 if __name__ == "__main__":
