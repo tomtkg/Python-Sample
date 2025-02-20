@@ -53,18 +53,6 @@ def distance(a: Pos, b: Pos) -> int:
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
-class Action:
-    def __init__(self, type: int, pos: Pos):
-        self.type = type
-        self.pos = pos
-
-    def __str__(self):
-        if self.type == DO_NOTHING:
-            return "-1"
-        else:
-            return f"{self.type} {self.pos[0]} {self.pos[1]}"
-
-
 class Field:
     def __init__(self, N: int):
         self.N = N
@@ -140,15 +128,15 @@ class Solver:
     def build_rail(self, type: int, r: int, c: int) -> None:
         self.field.build(type, r, c)
         self.money -= COST_RAIL
-        self.actions.append(Action(type, (r, c)))
+        self.actions.append(f"{type} {r} {c}")
 
     def build_station(self, r: int, c: int) -> None:
         self.field.build(STATION, r, c)
         self.money -= COST_STATION
-        self.actions.append(Action(STATION, (r, c)))
+        self.actions.append(f"{0} {r} {c}")
 
     def build_nothing(self) -> None:
-        self.actions.append(Action(DO_NOTHING, (0, 0)))
+        self.actions.append("-1")
 
     def solve(self) -> None:
         # 接続する人を見つける
