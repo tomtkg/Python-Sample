@@ -12,6 +12,11 @@ RAIL_RIGHT_UP = 5
 RAIL_RIGHT_DOWN = 6
 COST_STATION = 5000
 COST_RAIL = 100
+OFFSETS = [(0, 0),
+    (1, 0), (-1, 0), (0, 1), (0, -1),
+    (1, 1), (1, -1), (-1, 1), (-1, -1),
+    (2, 0), (-2, 0), (0, 2), (0, -2),
+]
 
 
 class UnionFind:
