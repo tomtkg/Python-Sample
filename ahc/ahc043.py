@@ -19,6 +19,21 @@ OFFSETS = [(0, 0),
 ]
 
 
+def get_symbol(prev: Pos, curr: Pos, next: Pos) -> int:
+    if prev[0] == next[0]: return 1  # RAIL_HORIZONTAL
+    if prev[1] == next[1]: return 2  # RAIL_VERTICAL
+
+    if prev[0] < curr[0] and curr[1] < next[1]: return 5  # RAIL_RIGHT_UP
+    if prev[0] < curr[0] and curr[1] > next[1]: return 4  # RAIL_LEFT_UP
+    if prev[0] > curr[0] and curr[1] < next[1]: return 6  # RAIL_RIGHT_DOWN
+    if prev[0] > curr[0] and curr[1] > next[1]: return 3  # RAIL_LEFT_DOWN
+
+    if prev[1] < curr[1] and curr[0] < next[0]: return 3  # RAIL_LEFT_DOWN
+    if prev[1] < curr[1] and curr[0] > next[0]: return 4  # RAIL_LEFT_UP
+    if prev[1] > curr[1] and curr[0] < next[0]: return 6  # RAIL_RIGHT_DOWN
+    if prev[1] > curr[1] and curr[0] > next[0]: return 5  # RAIL_RIGHT_UP
+
+
 class UnionFind:
     def __init__(self, n: int):
         self.n = n
