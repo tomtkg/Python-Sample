@@ -19,6 +19,14 @@ OFFSETS = [(0, 0),
 ]
 
 
+def get_ids(stations: list[Pos], map: dict[Pos, set[int]]) -> set[int]:
+    ids = set()
+    for p in stations:
+        if p in map:
+            ids |= map[p]
+    return ids
+
+
 def get_symbol(prev: Pos, curr: Pos, next: Pos) -> int:
     if prev[0] == next[0]: return 1  # RAIL_HORIZONTAL
     if prev[1] == next[1]: return 2  # RAIL_VERTICAL
