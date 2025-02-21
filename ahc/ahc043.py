@@ -27,6 +27,12 @@ def get_ids(stations: list[Pos], map: dict[Pos, set[int]]) -> set[int]:
     return ids
 
 
+def is_between(p1: Pos, p2: Pos, p: Pos):
+    return (min(p1[0], p2[0]) <= p[0] <= max(p1[0], p2[0])) and (
+        min(p1[1], p2[1]) <= p[1] <= max(p1[1], p2[1])
+    )
+
+
 def next_position(flag: bool, p: Pos, target: Pos) -> Pos:
     r, c = p
     if (flag and c != target[1]) or (not flag and r == target[0]):
