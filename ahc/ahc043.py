@@ -19,6 +19,17 @@ OFFSETS = [(0, 0),
 ]
 
 
+def build_map(points: list[Pos], N: int) -> dict[Pos, set[int]]:
+    m = {}
+    for i, (px, py) in enumerate(points):
+        for dx, dy in OFFSETS:
+            x, y = px + dx, py + dy
+            if 0 <= x < N and 0 <= y < N:
+                m.setdefault((x, y), set()).add(i)
+
+    return dict(sorted(m.items(), key=lambda x: len(x[1]), reverse=True)[:2000])
+
+
 def get_ids(stations: list[Pos], map: dict[Pos, set[int]]) -> set[int]:
     ids = set()
     for p in stations:
@@ -152,6 +163,8 @@ class Solver:
         self.T = T
         self.home = home
         self.workplace = workplace
+        self.home_map = build_map(home, N)
+        self.work_map = build_map(workplace, N)
         self.field = Field(N)
         self.money = K
         self.actions = []
