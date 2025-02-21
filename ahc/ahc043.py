@@ -27,6 +27,15 @@ def get_ids(stations: list[Pos], map: dict[Pos, set[int]]) -> set[int]:
     return ids
 
 
+def next_position(flag: bool, p: Pos, target: Pos) -> Pos:
+    r, c = p
+    if (flag and c != target[1]) or (not flag and r == target[0]):
+        c += (target[1] > c) - (target[1] < c)  # cをtargetに近づける
+    else:
+        r += (target[0] > r) - (target[0] < r)  # rをtargetに近づける
+    return r, c
+
+
 def get_symbol(prev: Pos, curr: Pos, next: Pos) -> int:
     if prev[0] == next[0]: return 1  # RAIL_HORIZONTAL
     if prev[1] == next[1]: return 2  # RAIL_VERTICAL
