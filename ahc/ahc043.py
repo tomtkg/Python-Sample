@@ -184,6 +184,11 @@ class Solver:
         self.money += self.income - COST_RAIL
         self.actions.append(f"{type} {r} {c}")
 
+    def build_rails(self, path: list[Pos]) -> None:
+        for p in range(1, len(path) - 1):
+            symbol = get_symbol(path[p - 1], path[p], path[p + 1])
+            self.build_rail(symbol, path[p][0], path[p][1])
+
     def build_station(self, r: int, c: int) -> None:
         while self.money < COST_STATION:
             self.build_nothing()
