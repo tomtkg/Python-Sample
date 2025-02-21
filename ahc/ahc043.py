@@ -201,6 +201,32 @@ class Solver:
         self.money += self.income
         self.actions.append("-1")
 
+    def first_step(self) -> tuple[Pos, Pos]:
+        max_d = (self.K - COST_STATION * 2) // COST_RAIL + 1
+        score = 0
+        st, st2 = None, None
+
+        for p1, h_ids in self.home_map.items():
+            for p2, w_ids in self.work_map.items():
+                d = distance(p1, p2)
+                if d < 5 or max_d < d:
+                    continue
+
+                pair_ids = h_ids & w_ids
+                if p2 in self.home_map and p1 in self.work_map:
+                    pair_ids |= self.home_map[p2] & self.work_map[p1]
+
+                income = sum(
+                    distance(self.home[id], self.workplace[id]) for id in pair_ids
+                )
+                s = self.K - (9900 + 100 * d) + (800 - d) * income
+
+                if s > score:
+                    score = s
+                    st, st2 = p1, p2
+
+        return st, st2
+
     def solve(self) -> None:
         # 接続する人を見つける
         rail_count = (self.K - COST_STATION * 2) // COST_RAIL
