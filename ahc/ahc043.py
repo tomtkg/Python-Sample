@@ -167,26 +167,33 @@ class Solver:
         self.work_map = build_map(workplace, N)
         self.field = Field(N)
         self.money = K
+        self.income = 0
         self.actions = []
 
-    def calc_income(self) -> int:
+    def calc_income(self) -> None:
         income = 0
         for i in range(self.M):
             if self.field.is_connected(self.home[i], self.workplace[i]):
                 income += distance(self.home[i], self.workplace[i])
-        return income
+        self.income = income
 
     def build_rail(self, type: int, r: int, c: int) -> None:
+        while self.money < COST_RAIL:
+            self.build_nothing()
         self.field.build(type, r, c)
-        self.money -= COST_RAIL
+        self.money += self.income - COST_RAIL
         self.actions.append(f"{type} {r} {c}")
 
     def build_station(self, r: int, c: int) -> None:
+        while self.money < COST_STATION:
+            self.build_nothing()
         self.field.build(STATION, r, c)
-        self.money -= COST_STATION
+        self.calc_income()
+        self.money += self.income - COST_STATION
         self.actions.append(f"{0} {r} {c}")
 
     def build_nothing(self) -> None:
+        self.money += self.income
         self.actions.append("-1")
 
     def solve(self) -> None:
@@ -229,13 +236,9 @@ class Solver:
             for c in range(c0 - 1, c1, -1):
                 self.build_rail(RAIL_HORIZONTAL, r1, c)
 
-        income = self.calc_income()
-        self.money += income
-
         # あとは待機
         while len(self.actions) < self.T:
             self.build_nothing()
-            self.money += income
 
 
 def main():
