@@ -78,8 +78,10 @@ class Solver:
         self.income = 0
         self.actions = []
 
-    def calc_income(self) -> None:
-        return
+    def calc_income(self, stations: set[Pos]) -> int:
+        home_ids = get_ids(stations, self.home_map)
+        work_ids = get_ids(stations, self.work_map)
+        return sum(distance(self.home[id], self.workplace[id]) for id in home_ids & work_ids)
 
     def build_rail(self, type: int, r: int, c: int) -> None:
         while self.money < COST_RAIL:
@@ -96,7 +98,7 @@ class Solver:
         self.stations.add((r, c))
         while self.money < COST_STATION:
             self.build_nothing()
-        self.calc_income()
+        self.income = self.calc_income(self.stations)
         self.money += self.income - COST_STATION
         self.actions.append(f"{0} {r} {c}")
 
