@@ -3,14 +3,24 @@ import sys
 Pos = tuple[int, int]
 COST_STATION = 5000
 COST_RAIL = 100
-OFFSETS = [(0, 0),
-    (1, 0), (-1, 0), (0, 1), (0, -1),
-    (1, 1), (1, -1), (-1, 1), (-1, -1),
-    (2, 0), (-2, 0), (0, 2), (0, -2),
+OFFSETS = [
+    (0, 0),
+    (1, 0),
+    (-1, 0),
+    (0, 1),
+    (0, -1),
+    (1, 1),
+    (1, -1),
+    (-1, 1),
+    (-1, -1),
+    (2, 0),
+    (-2, 0),
+    (0, 2),
+    (0, -2),
 ]
 
 
-def build_map(points: list[Pos], N: int) -> dict[Pos, set[int]]:
+def build_map(points: tuple[Pos], N: int) -> dict[Pos, set[int]]:
     m = {}
     for i, (px, py) in enumerate(points):
         for dx, dy in OFFSETS:
@@ -21,7 +31,7 @@ def build_map(points: list[Pos], N: int) -> dict[Pos, set[int]]:
     return dict(sorted(m.items(), key=lambda x: len(x[1]), reverse=True)[:2000])
 
 
-def get_ids(stations: list[Pos], map: dict[Pos, set[int]]) -> set[int]:
+def get_ids(stations: set[Pos], map: dict[Pos, set[int]]) -> set[int]:
     ids = set()
     for p in stations:
         if p in map:
@@ -37,26 +47,37 @@ def is_between(p1: Pos, p2: Pos, p: Pos):
 
 def next_position(flag: bool, p: Pos, target: Pos) -> Pos:
     r, c = p
-    if (flag and c != target[1]) or (not flag and r == target[0]):
-        c += (target[1] > c) - (target[1] < c)  # cをtargetに近づける
+    tr, tc = target
+    if (flag and c != tc) or (not flag and r == tr):
+        c += (tc > c) - (tc < c)  # cをtargetに近づける
     else:
-        r += (target[0] > r) - (target[0] < r)  # rをtargetに近づける
+        r += (tr > r) - (tr < r)  # rをtargetに近づける
     return r, c
 
 
 def get_symbol(prev: Pos, curr: Pos, next: Pos) -> int:
-    if prev[0] == next[0]: return 1  # RAIL_HORIZONTAL
-    if prev[1] == next[1]: return 2  # RAIL_VERTICAL
+    if prev[0] == next[0]:
+        return 1  # RAIL_HORIZONTAL
+    if prev[1] == next[1]:
+        return 2  # RAIL_VERTICAL
 
-    if prev[0] < curr[0] and curr[1] < next[1]: return 5  # RAIL_RIGHT_UP
-    if prev[0] < curr[0] and curr[1] > next[1]: return 4  # RAIL_LEFT_UP
-    if prev[0] > curr[0] and curr[1] < next[1]: return 6  # RAIL_RIGHT_DOWN
-    if prev[0] > curr[0] and curr[1] > next[1]: return 3  # RAIL_LEFT_DOWN
+    if prev[0] < curr[0] and curr[1] < next[1]:
+        return 5  # RAIL_RIGHT_UP
+    if prev[0] < curr[0] and curr[1] > next[1]:
+        return 4  # RAIL_LEFT_UP
+    if prev[0] > curr[0] and curr[1] < next[1]:
+        return 6  # RAIL_RIGHT_DOWN
+    if prev[0] > curr[0] and curr[1] > next[1]:
+        return 3  # RAIL_LEFT_DOWN
 
-    if prev[1] < curr[1] and curr[0] < next[0]: return 3  # RAIL_LEFT_DOWN
-    if prev[1] < curr[1] and curr[0] > next[0]: return 4  # RAIL_LEFT_UP
-    if prev[1] > curr[1] and curr[0] < next[0]: return 6  # RAIL_RIGHT_DOWN
-    if prev[1] > curr[1] and curr[0] > next[0]: return 5  # RAIL_RIGHT_UP
+    if prev[1] < curr[1] and curr[0] < next[0]:
+        return 3  # RAIL_LEFT_DOWN
+    if prev[1] < curr[1] and curr[0] > next[0]:
+        return 4  # RAIL_LEFT_UP
+    if prev[1] > curr[1] and curr[0] < next[0]:
+        return 6  # RAIL_RIGHT_DOWN
+    if prev[1] > curr[1] and curr[0] > next[0]:
+        return 5  # RAIL_RIGHT_UP
 
 
 def distance(a: Pos, b: Pos) -> int:
@@ -65,14 +86,16 @@ def distance(a: Pos, b: Pos) -> int:
 
 class Solver:
     def __init__(
+        self, N: int, M: int, K: int, T: int, home: tuple[Pos], work: tuple[Pos]
+    ):
         self.N = N
-        self.M = M
-        self.K = K
+        # self.M = M
+        # self.K = K
         self.T = T
         self.home = home
-        self.workplace = workplace
+        self.work = work
         self.home_map = build_map(home, N)
-        self.work_map = build_map(workplace, N)
+        self.work_map = build_map(work, N)
 
         self.money = K
         self.income = 0
@@ -81,7 +104,7 @@ class Solver:
     def calc_income(self, stations: set[Pos]) -> int:
         home_ids = get_ids(stations, self.home_map)
         work_ids = get_ids(stations, self.work_map)
-        return sum(distance(self.home[id], self.workplace[id]) for id in home_ids & work_ids)
+        return sum(distance(self.home[id], self.work[id]) for id in home_ids & work_ids)
 
     def build_rail(self, type: int, r: int, c: int) -> None:
         while self.money < COST_RAIL:
@@ -107,7 +130,7 @@ class Solver:
         self.actions.append("-1")
 
     def first_step(self) -> tuple[Pos, Pos]:
-        max_d = (self.K - COST_STATION * 2) // COST_RAIL + 1
+        max_d = (self.money - COST_STATION * 2) // COST_RAIL + 1
         score = 0
         st, st2 = None, None
 
@@ -121,10 +144,8 @@ class Solver:
                 if p2 in self.home_map and p1 in self.work_map:
                     pair_ids |= self.home_map[p2] & self.work_map[p1]
 
-                income = sum(
-                    distance(self.home[id], self.workplace[id]) for id in pair_ids
-                )
-                s = self.K - (9900 + 100 * d) + (800 - d) * income
+                income = sum(distance(self.home[id], self.work[id]) for id in pair_ids)
+                s = self.money - (9900 + 100 * d) + (800 - d) * income
 
                 if s > score:
                     score = s
@@ -179,16 +200,13 @@ class Solver:
 
 def main():
     N, M, K, T = map(int, input().split())
-    home = []
-    workplace = []
-    for _ in range(M):
-        r0, c0, r1, c1 = map(int, input().split())
-        home.append((r0, c0))
-        workplace.append((r1, c1))
 
-    solver = Solver(N, M, K, T, home, workplace)
+    data = [tuple(map(int, line.split())) for line in sys.stdin.read().splitlines()]
+    home, work = zip(*[((r0, c0), (r1, c1)) for r0, c0, r1, c1 in data])
+
+    solver = Solver(N, M, K, T, home, work)
     solver.solve()
-    
+
     print("\n".join(map(str, solver.actions)))
     print(f"score={solver.money}", file=sys.stderr)
 
