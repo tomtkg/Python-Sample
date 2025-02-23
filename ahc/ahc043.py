@@ -68,95 +68,12 @@ def get_symbol(prev: Pos, curr: Pos, next: Pos) -> int:
     if prev[1] > curr[1] and curr[0] > next[0]: return 5  # RAIL_RIGHT_UP
 
 
-class UnionFind:
-    def __init__(self, n: int):
-        self.n = n
-        self.parents = [-1 for _ in range(n * n)]
-
-    def _find_root(self, idx: int) -> int:
-        if self.parents[idx] < 0:
-            return idx
-        self.parents[idx] = self._find_root(self.parents[idx])
-        return self.parents[idx]
-
-    def is_same(self, p: Pos, q: Pos) -> bool:
-        p_idx = p[0] * self.n + p[1]
-        q_idx = q[0] * self.n + q[1]
-        return self._find_root(p_idx) == self._find_root(q_idx)
-
-    def unite(self, p: Pos, q: Pos) -> None:
-        p_idx = p[0] * self.n + p[1]
-        q_idx = q[0] * self.n + q[1]
-        p_root = self._find_root(p_idx)
-        q_root = self._find_root(q_idx)
-        if p_root != q_root:
-            p_size = -self.parents[p_root]
-            q_size = -self.parents[q_root]
-            if p_size > q_size:
-                p_root, q_root = q_root, p_root
-            self.parents[q_root] += self.parents[p_root]
-            self.parents[p_root] = q_root
-
-
 def distance(a: Pos, b: Pos) -> int:
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
-class Field:
-    def __init__(self, N: int):
-        self.N = N
-        self.rail = [[EMPTY] * N for _ in range(N)]
-        self.uf = UnionFind(N)
-
-    def build(self, type: int, r: int, c: int) -> None:
-        assert self.rail[r][c] != STATION
-        if 1 <= type <= 6:
-            assert self.rail[r][c] == EMPTY
-        self.rail[r][c] = type
-
-        # 隣接する区画と接続
-        # 上
-        if type in (STATION, RAIL_VERTICAL, RAIL_LEFT_UP, RAIL_RIGHT_UP):
-            if r > 0 and self.rail[r - 1][c] in (STATION, RAIL_VERTICAL, RAIL_LEFT_DOWN, RAIL_RIGHT_DOWN):
-                self.uf.unite((r, c), (r - 1, c))
-        # 下
-        if type in (STATION, RAIL_VERTICAL, RAIL_LEFT_DOWN, RAIL_RIGHT_DOWN):
-            if r < self.N - 1 and self.rail[r + 1][c] in (STATION, RAIL_VERTICAL, RAIL_LEFT_UP, RAIL_RIGHT_UP):
-                self.uf.unite((r, c), (r + 1, c))
-        # 左
-        if type in (STATION, RAIL_HORIZONTAL, RAIL_LEFT_DOWN, RAIL_LEFT_UP):
-            if c > 0 and self.rail[r][c - 1] in (STATION, RAIL_HORIZONTAL, RAIL_RIGHT_DOWN, RAIL_RIGHT_UP):
-                self.uf.unite((r, c), (r, c - 1))
-        # 右
-        if type in (STATION, RAIL_HORIZONTAL, RAIL_RIGHT_DOWN, RAIL_RIGHT_UP):
-            if c < self.N - 1 and self.rail[r][c + 1] in (STATION, RAIL_HORIZONTAL, RAIL_LEFT_DOWN, RAIL_LEFT_UP):
-                self.uf.unite((r, c), (r, c + 1))
-
-    def is_connected(self, s: Pos, t: Pos) -> bool:
-        assert distance(s, t) > 4  # 前提条件
-        stations0 = self.collect_stations(s)
-        stations1 = self.collect_stations(t)
-        for station0 in stations0:
-            for station1 in stations1:
-                if self.uf.is_same(station0, station1):
-                    return True
-        return False
-
-    def collect_stations(self, pos: Pos) -> list[Pos]:
-        stations = []
-        for dr in range(-2, 3):
-            for dc in range(-2, 3):
-                if abs(dr) + abs(dc) > 2:
-                    continue
-                r = pos[0] + dr
-                c = pos[1] + dc
-                if 0 <= r < self.N and 0 <= c < self.N and self.rail[r][c] == STATION:
-                    stations.append((r, c))
-        return stations
-
-
 class Solver:
-    def __init__(self, N: int, M: int, K: int, T: int, home: list[Pos], workplace: list[Pos]):
+    def __init__(
         self.N = N
         self.M = M
         self.K = K
@@ -165,22 +82,17 @@ class Solver:
         self.workplace = workplace
         self.home_map = build_map(home, N)
         self.work_map = build_map(workplace, N)
-        self.field = Field(N)
+
         self.money = K
         self.income = 0
         self.actions = []
 
     def calc_income(self) -> None:
-        income = 0
-        for i in range(self.M):
-            if self.field.is_connected(self.home[i], self.workplace[i]):
-                income += distance(self.home[i], self.workplace[i])
-        self.income = income
+        return
 
     def build_rail(self, type: int, r: int, c: int) -> None:
         while self.money < COST_RAIL:
             self.build_nothing()
-        self.field.build(type, r, c)
         self.money += self.income - COST_RAIL
         self.actions.append(f"{type} {r} {c}")
 
@@ -190,9 +102,9 @@ class Solver:
             self.build_rail(symbol, path[p][0], path[p][1])
 
     def build_station(self, r: int, c: int) -> None:
+        self.stations.add((r, c))
         while self.money < COST_STATION:
             self.build_nothing()
-        self.field.build(STATION, r, c)
         self.calc_income()
         self.money += self.income - COST_STATION
         self.actions.append(f"{0} {r} {c}")
