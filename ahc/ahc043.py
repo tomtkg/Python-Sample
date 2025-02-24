@@ -20,15 +20,54 @@ OFFSETS = [
 ]
 
 
-def build_map(points: tuple[Pos], N: int) -> dict[Pos, set[int]]:
-    m = {}
-    for i, (px, py) in enumerate(points):
-        for dx, dy in OFFSETS:
-            x, y = px + dx, py + dy
-            if 0 <= x < N and 0 <= y < N:
-                m.setdefault((x, y), set()).add(i)
+def build_pos_to_idx(
+    idx_to_pos: list[tuple[Pos, Pos]],
+    N: int,
+) -> dict[Pos, tuple[set[int], set[int]]]:
+    pos_to_idx = {}
+    for i, poss in enumerate(idx_to_pos):
+        for j, (px, py) in enumerate(poss):
+            for dx, dy in OFFSETS:
+                p = (px + dx, py + dy)
+                if not (0 <= p[0] < N and 0 <= p[1] < N):
+                    continue
 
-    return dict(sorted(m.items(), key=lambda x: len(x[1]), reverse=True)[:2000])
+                if p not in pos_to_idx:
+                    pos_to_idx[p] = (set(), set())
+                pos_to_idx[p][j].add(i)
+
+    return pos_to_idx
+
+
+def build_candidate(
+    pos_to_idx: dict[Pos, tuple[set[int], set[int]]], m: int
+) -> set[Pos]:
+    all_pos = set(pos_to_idx.keys())
+    ext_pos = set()
+    home_uncovered = set(range(m))
+    work_uncovered = set(range(m))
+
+    while home_uncovered or work_uncovered:
+        score = 0
+        pos = None
+        home, work = set(), set()
+
+        for p in all_pos:
+            h, w = pos_to_idx[p]
+            total_cover = len(h & home_uncovered) + len(w & work_uncovered)
+            s = 100 * total_cover + len(h | w)
+
+            if s > score:
+                score = s
+                pos = p
+                home, work = h, w
+
+        ext_pos.add(pos)
+        all_pos.remove(pos)
+        home_uncovered.difference_update(home)
+        work_uncovered.difference_update(work)
+
+    return ext_pos
 
 
 def get_ids(stations: set[Pos], map: dict[Pos, set[int]]) -> set[int]:
@@ -86,16 +125,22 @@ def distance(a: Pos, b: Pos) -> int:
 
 class Solver:
     def __init__(
-        self, N: int, M: int, K: int, T: int, home: tuple[Pos], work: tuple[Pos]
+        self,
+        N: int,
+        M: int,
+        K: int,
+        T: int,
+        idx_to_pos: list[tuple[Pos, Pos]],
+        pos_to_idx: dict[Pos, tuple[set[int], set[int]]],
+        candidate: set[Pos],
     ):
         self.N = N
         # self.M = M
         # self.K = K
         self.T = T
-        self.home = home
-        self.work = work
-        self.home_map = build_map(home, N)
-        self.work_map = build_map(work, N)
+        self.idx_to_pos = idx_to_pos
+        self.pos_to_idx = pos_to_idx
+        self.candidate = candidate
 
         self.money = K
         self.income = 0
