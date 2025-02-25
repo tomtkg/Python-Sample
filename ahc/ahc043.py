@@ -277,6 +277,24 @@ class Solver:
 
         return built
 
+    def calc_score(self, path: list[Pos]) -> tuple[int, int]:
+        s = self.money - COST_STATION
+        t = self.T - len(self.actions)
+        income = self.income
+        score = self.money + t * income
+
+        if path[-1] not in self.stations and path[0] not in self.rails:
+            t2 = max(1, -s // income + 1)
+            s += t2 * income - COST_STATION
+            t -= t2
+            income = self.calc_income({path[-1]})
+
+        s -= COST_RAIL * max(0, len(path) - 2)
+        t2 = max(len(path) - 2, -s // income + 1)
+        s += t2 * income + (t - t2) * self.calc_income({path[-1], path[0]})
+
+        return score, s
+
     def solve(self, candidate: set[Pos]):
         # 建設候補駅を見つける
         stations, candidate = self.find_2stations(candidate)
