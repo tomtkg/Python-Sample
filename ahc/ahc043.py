@@ -375,6 +375,25 @@ class Solver:
         self.build_station(path[0])
         self.stations2.update(built)
 
+    def second_build(self, target: int, stations: list[Pos]) -> bool:
+        p = stations[target]
+
+        if p in self.stations:
+            return True
+
+        goal = min(self.stations, key=lambda q: distance(p, q))
+        built = self.get_built([p, goal], stations[target + 1 :])
+        path = self.build_path(built)
+        score, new_score = self.calc_score(path)
+
+        if score <= new_score:
+            self.build_station(path[-1])
+            self.build_rails(path)
+            self.build_station(path[0])
+            self.stations2.update(built)
+            return True
+        return False
+
     def solve(self, candidate: set[Pos]):
         # 建設候補駅を見つける
         stations, candidate = self.find_2stations(candidate)
