@@ -266,6 +266,17 @@ class Solver:
 
         return stations, candidate
 
+    def get_built(self, built: list[Pos], stations: list[Pos]) -> list[Pos]:
+        for p in stations:
+            if p in self.rails:
+                continue
+            for i in range(1, len(built)):
+                if is_between(built[i - 1], built[i], p):
+                    built = built[:i] + [p] + built[i:]
+                    break
+
+        return built
+
     def solve(self, candidate: set[Pos]):
         # 建設候補駅を見つける
         stations, candidate = self.find_2stations(candidate)
