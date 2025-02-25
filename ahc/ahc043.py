@@ -317,6 +317,33 @@ class Solver:
 
         return path
 
+    def detour(self, out: list[Pos], goal: Pos) -> list[Pos] | None:
+        x, y = out[-2]
+        for dx, dy in [(0, 1), (1, 0), (-1, 0), (0, -1)]:
+            p = (x + dx, y + dy)
+            if p in out or not (0 <= p[0] < self.N and 0 <= p[1] < self.N):
+                continue
+
+            path, flag = [p], False
+
+            while True:
+                current = path[-1]
+                if current == goal:
+                    return path
+
+                if current in self.rails or current in out:
+                    if current in self.stations2:
+                        return path
+                    if flag:
+                        break
+
+                    path, flag = [p], True
+                    continue
+
+                path.append(next_pos(flag, current, goal))
+
+        return None
+
     def calc_score(self, path: list[Pos]) -> tuple[int, int]:
         s = self.money - COST_STATION
         t = self.T - len(self.actions)
