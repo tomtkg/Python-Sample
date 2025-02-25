@@ -238,6 +238,34 @@ class Solver:
 
         return stations, candidate
 
+    def find_next(
+        self, stations: list[Pos], candidate: set[Pos]
+    ) -> tuple[list[Pos], set[Pos]]:
+        h_ids, w_ids = get_ids(self.pos_to_idx, stations)
+        h_ids, w_ids = h_ids - w_ids, w_ids - h_ids
+
+        score = 0
+        income = 0
+        station = None
+
+        for p in candidate:
+            home_ids, work_ids = self.pos_to_idx[p]
+            pair2 = (h_ids | home_ids) & (w_ids | work_ids)
+
+            sumd = sum(distance(*self.idx_to_pos[idx]) for idx in pair2)
+            s = 1000 * len(pair2) + 10 * sumd + len(home_ids) + len(work_ids)
+
+            if s > score:
+                score = s
+                income = sumd
+                station = p
+
+        if income > 0:
+            stations.append(station)
+        candidate.remove(station)
+
+        return stations, candidate
+
     def solve(self, candidate: set[Pos]):
         # 建設候補駅を見つける
         stations, candidate = self.find_2stations(candidate)
