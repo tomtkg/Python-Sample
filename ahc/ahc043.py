@@ -208,6 +208,36 @@ class Solver:
 
         return st, st2
 
+    def find_2stations(self, candidate: set[Pos]) -> tuple[list[Pos], set[Pos]]:
+        max_d = (self.money - COST_STATION * 2) // COST_RAIL + 1
+        score = 0
+        stations = []
+
+        list_candidate, n = list(candidate), len(candidate)
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                p1, p2 = list_candidate[i], list_candidate[j]
+
+                d = distance(p1, p2)
+                if d > max_d:
+                    continue
+
+                h_ids1, w_ids1 = self.pos_to_idx[p1]
+                h_ids2, w_ids2 = self.pos_to_idx[p2]
+                pair_ids = h_ids1 & w_ids2 | h_ids2 & w_ids1
+
+                income = sum(distance(*self.idx_to_pos[idx]) for idx in pair_ids)
+                s = self.money - (9900 + 100 * d) + (800 - d) * income
+
+                if s > score:
+                    score = s
+                    stations = [p1, p2]
+
+        candidate.difference_update(stations)
+
+        return stations, candidate
+
     def solve(self, candidate: set[Pos]):
         # 建設候補駅を見つける
         stations, candidate = self.find_2stations(candidate)
