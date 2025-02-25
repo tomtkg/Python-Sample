@@ -277,6 +277,46 @@ class Solver:
 
         return built
 
+    def build_path(self, stations: list[Pos]) -> list[Pos]:
+        path = [stations[0]]
+        segment2 = []
+
+        for goal in stations[1:]:
+            segment, flag = [path[-1]], False
+
+            while segment[-1] != goal:
+                current = segment[-1]
+
+                if current in self.rails:
+                    if current in self.stations2:
+                        path.extend(segment[1:])
+                        return path
+
+                    detour = self.detour(path + segment, goal)
+                    if detour is not None:
+                        segment.pop()
+                        segment.extend(detour)
+                        
+                        if detour[-1] == goal:
+                            break
+                        else:
+                            path.extend(segment[1:])
+                            return path
+
+                    if flag:
+                        path.extend(min(segment, segment2, key=len)[1:])
+                        return path
+                    else:
+                        segment2 = segment[:]
+                        segment, flag = [path[-1]],  True
+                        continue
+
+                segment.append(next_pos(flag, current, goal))
+
+            path.extend(segment[1:])
+
+        return path
+
     def calc_score(self, path: list[Pos]) -> tuple[int, int]:
         s = self.money - COST_STATION
         t = self.T - len(self.actions)
