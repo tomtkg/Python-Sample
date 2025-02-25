@@ -362,6 +362,19 @@ class Solver:
 
         return score, s
 
+    def first_build(self, stations: list[Pos]) -> None:
+        built = self.get_built(stations[:2], stations[2:])
+
+        path = [built[0]]
+        for goal in built[1:]:
+            while path[-1] != goal:
+                path.append(next_pos(False, path[-1], goal))
+
+        self.build_station(path[-1])
+        self.build_rails(path)
+        self.build_station(path[0])
+        self.stations2.update(built)
+
     def solve(self, candidate: set[Pos]):
         # 建設候補駅を見つける
         stations, candidate = self.find_2stations(candidate)
