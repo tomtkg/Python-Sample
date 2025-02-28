@@ -296,7 +296,7 @@ class Solver:
                     if detour is not None:
                         segment.pop()
                         segment.extend(detour)
-                        
+
                         if detour[-1] == goal:
                             break
                         else:
@@ -308,7 +308,7 @@ class Solver:
                         return path
                     else:
                         segment2 = segment[:]
-                        segment, flag = [path[-1]],  True
+                        segment, flag = [path[-1]], True
                         continue
 
                 segment.append(next_pos(flag, current, goal))
